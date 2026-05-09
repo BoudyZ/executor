@@ -201,7 +201,7 @@ export async function startServer(opts: StartServerOptions = {}): Promise<Server
       if (requiresAuth && !isAuthorized(req)) {
         return new Response("Unauthorized", {
           status: 401,
-          headers: { "www-authenticate": 'Bearer realm="executor", Basic realm="executor"' },
+          headers: { "www-authenticate": 'Basic realm="executor", Bearer realm="executor"' },
         });
       }
 
