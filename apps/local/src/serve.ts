@@ -156,14 +156,19 @@ export async function startServer(opts: StartServerOptions = {}): Promise<Server
   const port = opts.port ?? parseInt(process.env.PORT ?? "4788", 10);
   const hostname = opts.hostname ?? "127.0.0.1";
   const auth = {
-    token: normalizeCredential(opts.authToken),
-    password: normalizeCredential(opts.authPassword),
+    token: normalizeCredential(opts.authToken ?? process.env.EXECUTOR_AUTH_TOKEN),
+    password: normalizeCredential(opts.authPassword ?? process.env.EXECUTOR_AUTH_PASSWORD),
   };
   const isNetworkBind = !isLoopbackBindHost(hostname);
   const requiresAuth = auth.token !== null || auth.password !== null;
   if (isNetworkBind && !requiresAuth) {
     // oxlint-disable-next-line executor/no-try-catch-or-throw, executor/no-error-constructor -- boundary: startServer is a Promise API and rejects invalid bind options
     throw new Error("Refusing to listen on a non-loopback host without an auth token or password.");
+  }
+  if (requiresAuth) {
+    console.log(
+      `Executor auth enabled (${auth.password ? "basic" : ""}${auth.password && auth.token ? "+" : ""}${auth.token ? "bearer" : ""})`,
+    );
   }
   const isAuthorized = makeIsAuthorized(auth);
   const allowedHostSet = new Set<string>([...DEFAULT_ALLOWED_HOSTS, ...(opts.allowedHosts ?? [])]);
